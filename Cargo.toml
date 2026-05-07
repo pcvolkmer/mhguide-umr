@@ -7,6 +7,9 @@ description = "Parser for MH-Guide files used at pathology Marburg"
 license = "MIT"
 readme = "README.md"
 
+[lib]
+doctest = false
+
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
