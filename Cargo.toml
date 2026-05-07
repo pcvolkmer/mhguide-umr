@@ -1,0 +1,17 @@
+[package]
+name = "mhguide-umr"
+version = "0.0.0"
+edition = "2024"
+authors = ["Paul-Christian Volkmer"]
+description = "Parser for MH-Guide files used at pathology Marburg"
+license = "MIT"
+readme = "README.md"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+regex = "1.12"
+rayon = "1.11"
+
+[dev-dependencies]
+rstest = "0.26"

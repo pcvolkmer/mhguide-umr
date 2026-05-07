@@ -1,0 +1,148 @@
+{
+  "DATASET_VERSION_STRING": 123456789000,
+  "GENERAL": {
+    "OU_CUSTOMER": "Test-Pathologie",
+    "ORG_UNIT_NAME": "Test-Pathologie",
+    "CASE_UUID": "00000000-0001-9999-ffff-000000000001",
+    "ANALYSIS_TYPE": "unpaired",
+    "CASE_PRODUCT_I18N_KEY": "Guide",
+    "PRODUCT_I18N_KEY": "mh_guide",
+    "LABTEST_CONFIGURATION": "UUID-00000000-0001-9999-ffff-000000000001-1",
+    "GENE_FILTER_LIST_APPLIED_ID": null,
+    "GENE_FILTER_LIST_APPLIED_OU": null,
+    "CS_STATUS": 500,
+    "PT_SECONDARY_MESH_IDENTIFIER": null,
+    "ORDER_NUMBER": "EU260211-SFX-001",
+    "PT_NAME": null,
+    "PT_DATE_OF_BIRTH": null,
+    "PATIENT_IDENTIFIER": "H10000-26_PID0123456",
+    "DISEASE_DESCRIPTION": "Pancreatic Neoplasms",
+    "ICD_10": null,
+    "PT_INDICATION_MESHID": "D010190",
+    "PT_DISEASE_NAME": "Pancreatic Neoplasms",
+    "TUMOR_SAMPLE_CELLULARITY": null,
+    "ORDER_DATE": "2026-02-11",
+    "TUMOR_SAMPLE_COLLECTION_DATE": null,
+    "PT_SECONDARY_DISEASES": null,
+    "PT_COUNTRY_CODE": "DE",
+    "METASTATIC_DISEASE": "unknown",
+    "OD_PHYS_FORMAL_NAME": "TestRoutine",
+    "LABTEST_DISPLAY_NAME": "VCF Test VP Complete Solid Tumor",
+    "REF_GENOME_VERSION": 37,
+    "ANALYZED_VARIANT_TYPES": "",
+    "CODING_TARGET_REGION_SIZE": null,
+    "REPORT_VERSION": 1,
+    "INPUT_TYPE": "vcf",
+    "PT_COUNTRY": "GERMANY",
+    "APP_VERSION": "1.2.3"
+  },
+  "DETECTED_GENES": [
+    {
+      "GENE_NAME": "BRAF",
+      "I": "not identified",
+      "IS_HIGHLIGHT": false
+    }
+  ],
+  "VARIANT_LONG_LIST": [
+  ],
+  "BIOMARKERS": {
+    "NOTABLE_BIOMARKERS": [
+      {
+        "BIOMARKERS": [
+          {
+            "DETECTED_VAR_ID": 12345670,
+            "DISPLAY_MODIFIED_OBJECT": "TMB-L",
+            "DISPLAY_MODIFICATION": "0.19 mut/Mb",
+            "DISPLAY_VARIANT_TYPE": "TMB",
+            "CHROMOSOMAL_VARIANT_TYPE": "TMB",
+            "VARIANT_ALLELE_FREQUENCY_IN_TUMOR": null,
+            "TMB_VARIANT_COUNT_PER_MEGABASE": "0.1900",
+            "VARIANT_EFFECT": null,
+            "IS_ADDED_BY_USER": 0,
+            "MAPPING_MESSAGE": null,
+            "MAX_MAPPING_COORDINATE_SYSTEM": "s",
+            "IS_POLYMORPHISM": 0,
+            "COPY_NUMBER": null,
+            "HAS_VAF": false,
+            "HAS_GCN": false,
+            "IS_WILDTYPE": false,
+            "IS_FIRST": true
+          }
+        ],
+        "APPROVED": [],
+        "OTHER": [],
+        "HAS_TREATMENTS": false,
+        "NARRATIVES": [],
+        "IS_WILDTYPE": false,
+        "ADDITIONAL_CVIS": [],
+        "HAS_DETAILS": false,
+        "SORT_KEY": ",1,"
+      },
+      {
+        "BIOMARKERS": [
+          {
+            "DETECTED_VAR_ID": 12345671,
+            "DISPLAY_MODIFIED_OBJECT": "HRD-positive",
+            "DISPLAY_MODIFICATION": "",
+            "DISPLAY_VARIANT_TYPE": "HRD",
+            "CHROMOSOMAL_VARIANT_TYPE": "HRD",
+            "VARIANT_ALLELE_FREQUENCY_IN_TUMOR": null,
+            "TMB_VARIANT_COUNT_PER_MEGABASE": null,
+            "VARIANT_EFFECT": null,
+            "IS_ADDED_BY_USER": 0,
+            "MAPPING_MESSAGE": null,
+            "MAX_MAPPING_COORDINATE_SYSTEM": "s",
+            "IS_POLYMORPHISM": 0,
+            "COPY_NUMBER": null,
+            "HAS_VAF": false,
+            "HAS_GCN": false,
+            "IS_WILDTYPE": false,
+            "IS_FIRST": true,
+            "SCORE": "12.00"
+          }
+        ],
+        "APPROVED": [],
+        "OTHER": [],
+        "HAS_TREATMENTS": false,
+        "NARRATIVES": [],
+        "IS_WILDTYPE": false,
+        "ADDITIONAL_CVIS": [],
+        "HAS_DETAILS": false,
+        "SORT_KEY": ",1,"
+      },
+      {
+        "BIOMARKERS": [
+          {
+            "DETECTED_VAR_ID": 12345672,
+            "DISPLAY_MODIFIED_OBJECT": "MS-stable",
+            "DISPLAY_MODIFICATION": "",
+            "DISPLAY_VARIANT_TYPE": "MSI",
+            "CHROMOSOMAL_VARIANT_TYPE": "MSI",
+            "VARIANT_ALLELE_FREQUENCY_IN_TUMOR": null,
+            "AVERAGE_BASE_CALLING_QUALITY": "0.21",
+            "VARIANT_EFFECT": null,
+            "IS_ADDED_BY_USER": 0,
+            "MAPPING_MESSAGE": null,
+            "MAX_MAPPING_COORDINATE_SYSTEM": "s",
+            "IS_POLYMORPHISM": 0,
+            "COPY_NUMBER": null,
+            "HAS_VAF": false,
+            "HAS_GCN": false,
+            "IS_WILDTYPE": false,
+            "IS_FIRST": true,
+            "SCORE": "0.21"
+          }
+        ],
+        "APPROVED": [],
+        "OTHER": [],
+        "HAS_TREATMENTS": false,
+        "NARRATIVES": [],
+        "IS_WILDTYPE": false,
+        "ADDITIONAL_CVIS": [],
+        "HAS_DETAILS": false,
+        "SORT_KEY": ",1,"
+      }
+    ]
+  },
+  "REPORT_NARRATIVE": "KMT2C, GCN = 0.00\nABCD1(ex 1)::ABCD2(ex 2); Transcript ID: NM_012345.4/NM_012456.2; Strand: -/-; Breakpoint: chr19:12345678/chr19:13456789; Supporting read pairs: 1234"
+}
