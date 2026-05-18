@@ -6,8 +6,8 @@ use serde::{Deserialize, Deserializer};
 use std::fmt::Display;
 use std::str::FromStr;
 
-pub use mhguide::*;
 pub use fusions::*;
+pub use mhguide::*;
 
 #[derive(Debug, PartialEq)]
 pub enum RefGenomeVersion {
@@ -63,88 +63,45 @@ impl<'de> Deserialize<'de> for PatientIdentifier {
 }
 
 #[allow(clippy::expect_used)]
-pub fn three_letter_protein_modification(short: &str) -> String {
-    fn map_value(value: &str) -> String {
-        match value {
-            "*" => "*",
-            "=" => "=",
-            "fs" => "fs",
-            "F" => "Phe",
-            "L" => "Leu",
-            "S" => "Ser",
-            "Y" => "Tyr",
-            "C" => "Cys",
-            "W" => "Trp",
-            "P" => "Pro",
-            "H" => "His",
-            "Q" => "Gln",
-            "R" => "Arg",
-            "I" => "Ile",
-            "M" => "Met",
-            "T" => "Thr",
-            "N" => "Asn",
-            "K" => "Lys",
-            "V" => "Val",
-            "A" => "Ala",
-            "D" => "Asp",
-            "E" => "Glu",
-            "G" => "Gly",
-            _ => value,
-        }
-            .to_string()
+pub fn three_letter_protein_modification(input: &str) -> String {
+    let mapping = [
+        ("A", "Ala"),
+        ("C", "Cys"),
+        ("G", "Gly"),
+        ("I", "Ile"),
+        ("L", "Leu"),
+        ("M", "Met"),
+        ("P", "Pro"),
+        ("S", "Ser"),
+        ("T", "Thr"),
+        ("V", "Val"),
+        ("F", "Phe"),
+        ("Y", "Tyr"),
+        ("W", "Trp"),
+        ("H", "His"),
+        ("Q", "Gln"),
+        ("R", "Arg"),
+        ("N", "Asn"),
+        ("K", "Lys"),
+        ("D", "Asp"),
+        ("E", "Glu"),
+    ];
+
+    let three_letter_codes = Regex::from_str(
+        r"(Phe|Leu|Ser|Tyr|Cys|Trp|Pro|His|Gln|Arg|Ile|Met|Thr|Asn|Lys|Val|Ala|Asp|Glu|Gly)",
+    )
+    .expect("Invalid regex");
+
+    if three_letter_codes.is_match(input) {
+        return input.to_string();
     }
 
-    let regex = Regex::new(r"^p\.(?<refA>[*FLSYCWPHQRIMTNKVADEG])?(?<posA>\d+)?(?<sep>_)?(?<refB>[*FLSYCWPHQRIMTNKVADEG])(?<posB>\d+)(?<type>del|ins|delins|dup)?(?<alt>[*=FLSYCWPHQRIMTNKVADEG]+|fs)?$")
-        .expect("Invalid regex");
-
-    if let Some(captures) = regex.captures(short) {
-        let refa_capture = match captures.name("refA") {
-            Some(m) => m.as_str(),
-            None => "",
-        };
-        let posa_capture = match captures.name("posA") {
-            Some(m) => m.as_str(),
-            None => "",
-        };
-        let sep_capture = match captures.name("sep") {
-            Some(m) => m.as_str(),
-            None => "",
-        };
-        let refb_capture = match captures.name("refB") {
-            Some(m) => m.as_str(),
-            None => "",
-        };
-        let posb_capture = match captures.name("posB") {
-            Some(m) => m.as_str(),
-            None => "",
-        };
-        let type_capture = match captures.name("type") {
-            Some(m) => m.as_str(),
-            None => "",
-        };
-        let alt_capture = match captures.name("alt") {
-            Some(m) => m
-                .as_str()
-                .chars()
-                .collect::<Vec<_>>()
-                .iter()
-                .map(|c| map_value(&c.to_string()))
-                .collect::<String>(),
-            None => String::new(),
-        };
-        return format!(
-            "p.{}{}{}{}{}{}{}",
-            map_value(refa_capture),
-            posa_capture,
-            map_value(sep_capture),
-            map_value(refb_capture),
-            posb_capture,
-            type_capture,
-            alt_capture
-        );
+    let mut result = input.to_string();
+    for (old, new) in mapping {
+        result = result.replace(old, new);
     }
 
-    short.to_string()
+    result
 }
 
 #[derive(Debug, Default, PartialEq)]
@@ -210,6 +167,3 @@ impl FromStr for DnaChange {
         Err("Invalid DNA change format".to_string())
     }
 }
-
-
-

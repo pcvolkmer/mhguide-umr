@@ -1,10 +1,10 @@
-use std::fmt::Display;
-use std::str::FromStr;
+use crate::fusions::Fusion;
+use crate::{DnaChange, PatientIdentifier, RefGenomeVersion};
 use rayon::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Deserializer};
-use crate::fusions::Fusion;
-use crate::{DnaChange, PatientIdentifier, RefGenomeVersion};
+use std::fmt::Display;
+use std::str::FromStr;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct MhGuide {
@@ -129,9 +129,9 @@ impl MhGuide {
                             gene.clone() == v.gene_symbol.clone().unwrap_or_default()
                                 && protein_variant_type == &ResultType::CopyNumberVariant
                                 && match v.copy_number {
-                                Some(copy_number) => copy_number.eq(gnc),
-                                None => false,
-                            }
+                                    Some(copy_number) => copy_number.eq(gnc),
+                                    None => false,
+                                }
                         }),
                     _ => false,
                 })
@@ -158,10 +158,10 @@ impl MhGuide {
                         gene == &v.gene_symbol.clone().unwrap_or_default()
                             && modification.starts_with("c.")
                             && modification
-                            == &v
-                            .transcript_hgvs_modified_object
-                            .clone()
-                            .unwrap_or_default()
+                                == &v
+                                    .transcript_hgvs_modified_object
+                                    .clone()
+                                    .unwrap_or_default()
                     })
             });
         }
@@ -386,7 +386,7 @@ impl MhGuide {
         let cdna_regex = Regex::new(
             r"[A-Z0-9_\\-]+\s+c\.(-?\d+)(?:_(-?\d+))?([ACGT]>|dup|del|ins|delins)([ACGT]+)?",
         )
-            .expect("Invalid regex");
+        .expect("Invalid regex");
         let cdna_result = collect(s, &cdna_regex);
         result.extend(cdna_result);
 
@@ -541,7 +541,7 @@ impl Variant {
                 .as_ref()
                 .unwrap_or(&String::new()),
         )
-            .unwrap_or_default()
+        .unwrap_or_default()
     }
 }
 
@@ -578,10 +578,10 @@ pub struct Biomarker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rstest::rstest;
-    use crate::mhguide::{Biomarker, Biomarkers, General, MhGuide, NotableBiomarker, Variant};
     use crate::mhguide::ResultType::{CopyNumberVariant, SimpleVariant, HRD, MSI, TMB};
+    use crate::mhguide::{Biomarker, Biomarkers, General, MhGuide, NotableBiomarker, Variant};
     use crate::three_letter_protein_modification;
+    use rstest::rstest;
 
     #[test]
     #[allow(clippy::unwrap_used)]
@@ -825,7 +825,12 @@ mod tests {
     #[case("p.V600*", "p.Val600*")]
     // Not mappable - keep as is
     #[case("p.X123X", "p.X123X")]
-    #[case("c.123A>C", "c.123A>C")]
+    // Keep existing three letter codes
+    #[case("p.Gly123Glu", "p.Gly123Glu")]
+    #[case("p.Ser123_Ile125delinsPhe", "p.Ser123_Ile125delinsPhe")]
+    // Examples from UKR
+    #[case("p.E123Rfs*14", "p.Glu123Argfs*14")]
+    #[case("p.E123Rfs*?", "p.Glu123Argfs*?")]
     fn test_three_letter_protein_modification(#[case] short: &str, #[case] long: &str) {
         assert_eq!(three_letter_protein_modification(short), long);
     }
@@ -1524,5 +1529,4 @@ mod tests {
 
         assert_eq!(actual.len(), 1);
     }
-
 }
