@@ -1,6 +1,6 @@
 [package]
 name = "mhguide-umr"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2024"
 authors = ["Paul-Christian Volkmer"]
 description = "Parser for MH-Guide files used at pathology Marburg"
