@@ -543,6 +543,39 @@ impl Variant {
         )
         .unwrap_or_default()
     }
+
+    pub fn pathogenic_classification(&self) -> Option<PathogenicClassification> {
+        match self.classification_name {
+            Some(ref classification_name) => {
+                PathogenicClassification::from_str(classification_name).ok()
+            }
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum PathogenicClassification {
+    Benign,
+    LikelyBenign,
+    Vus,
+    LikelyPathogenic,
+    Pathogenic,
+}
+
+impl FromStr for PathogenicClassification {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Benign" => Ok(Self::Benign),
+            "Likely benign" => Ok(Self::LikelyBenign),
+            "Uncertain significance" => Ok(Self::Vus),
+            "Likely pathogenic" => Ok(Self::LikelyPathogenic),
+            "Pathogenic" => Ok(Self::Pathogenic),
+            _ => Err(()),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -582,6 +615,7 @@ mod tests {
     use crate::mhguide::{Biomarker, Biomarkers, General, MhGuide, NotableBiomarker, Variant};
     use crate::three_letter_protein_modification;
     use rstest::rstest;
+    use std::fs;
 
     #[test]
     #[allow(clippy::unwrap_used)]
@@ -1528,5 +1562,27 @@ mod tests {
         let actual = mh_guide.relevant_variants(false);
 
         assert_eq!(actual.len(), 1);
+    }
+
+    #[rstest]
+    #[case(
+        "testfiles/sv-mhguide.json",
+        Some(PathogenicClassification::LikelyBenign)
+    )]
+    #[case(
+        "testfiles/sv_del-mhguide.json",
+        Some(PathogenicClassification::LikelyBenign)
+    )]
+    #[case("testfiles/cnv-mhguide.json", None)]
+    #[allow(clippy::unwrap_used)]
+    fn test_pathogenic_classification(
+        #[case] filename: &str,
+        #[case] pathogenic_classification: Option<PathogenicClassification>,
+    ) {
+        let content = fs::read_to_string(filename).unwrap();
+
+        let actual = serde_json::from_str::<MhGuide>(&content).unwrap().variants[0]
+            .pathogenic_classification();
+        assert_eq!(actual, pathogenic_classification);
     }
 }
