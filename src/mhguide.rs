@@ -597,7 +597,7 @@ mod tests {
                     ref_genome_version: RefGenomeVersion::Hg19,
                     patient_identifier: PatientIdentifier {
                         h_number: "H10000-26".to_string(),
-                        pid: "PID0123456".to_string()
+                        pid: "0123456".to_string()
                     }
                 },
                 variants: vec![Variant {
@@ -648,7 +648,7 @@ mod tests {
                     ref_genome_version: RefGenomeVersion::Hg19,
                     patient_identifier: PatientIdentifier {
                         h_number: "H10000-26".to_string(),
-                        pid: "PID0123456".to_string()
+                        pid: "0123456".to_string()
                     }
                 },
                 variants: vec![Variant {
@@ -699,7 +699,7 @@ mod tests {
                     ref_genome_version: RefGenomeVersion::Hg19,
                     patient_identifier: PatientIdentifier {
                         h_number: "H10000-26".to_string(),
-                        pid: "PID0123456".to_string()
+                        pid: "0123456".to_string()
                     }
                 },
                 variants: vec![Variant {
@@ -1330,7 +1330,7 @@ mod tests {
                     ref_genome_version: RefGenomeVersion::Hg19,
                     patient_identifier: PatientIdentifier {
                         h_number: "H10000-26".to_string(),
-                        pid: "PID0123456".to_string()
+                        pid: "0123456".to_string()
                     }
                 },
                 variants: vec![],

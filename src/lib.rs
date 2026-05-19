@@ -57,7 +57,7 @@ impl<'de> Deserialize<'de> for PatientIdentifier {
             return Err(serde::de::Error::custom("Invalid PatientIdentifier format"));
         }
         let h_number = parts[0].to_string();
-        let pid = parts[1].to_string();
+        let pid = parts[1].replace("PID", "");
         Ok(PatientIdentifier { h_number, pid })
     }
 }
