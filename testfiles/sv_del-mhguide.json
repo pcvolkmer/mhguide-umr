@@ -1,5 +1,6 @@
 {
   "DATASET_VERSION_STRING": 123456789000,
+  "REPORT_SIGNED_FORMATTED": "20 May 2026",
   "GENERAL": {
     "OU_CUSTOMER": "Test-Pathologie",
     "ORG_UNIT_NAME": "Test-Pathologie",

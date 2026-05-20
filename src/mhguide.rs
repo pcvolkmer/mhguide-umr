@@ -16,6 +16,8 @@ pub struct MhGuide {
     pub biomarkers: Biomarkers,
     #[serde(rename = "REPORT_NARRATIVE")]
     pub report_narrative: String,
+    #[serde(rename = "REPORT_SIGNED_FORMATTED")]
+    pub report_signed_formatted: String,
 }
 
 impl MhGuide {
@@ -663,7 +665,8 @@ mod tests {
                         }]
                     }]
                 },
-                report_narrative: String::new()
+                report_narrative: String::new(),
+                report_signed_formatted: "20 May 2026".to_string(),
             }
         );
     }
@@ -714,7 +717,8 @@ mod tests {
                         }]
                     }]
                 },
-                report_narrative: String::new()
+                report_narrative: String::new(),
+                report_signed_formatted: "20 May 2026".to_string(),
             }
         );
     }
@@ -765,7 +769,8 @@ mod tests {
                         }]
                     }]
                 },
-                report_narrative: String::new()
+                report_narrative: String::new(),
+                report_signed_formatted: "20 May 2026".to_string(),
             }
         );
     }
@@ -948,6 +953,7 @@ mod tests {
                 notable_biomarkers: vec![],
             },
             report_narrative: report_narrative.to_string(),
+            report_signed_formatted: "20 May 2026".to_string(),
         };
 
         let actual = mh_guide.relevant_variants(false);
@@ -1030,6 +1036,7 @@ mod tests {
                 notable_biomarkers: vec![],
             },
             report_narrative: report_narrative.to_string(),
+            report_signed_formatted: "20 May 2026".to_string(),
         };
 
         let actual = mh_guide.relevant_variants(false);
@@ -1093,6 +1100,7 @@ mod tests {
                 notable_biomarkers: vec![],
             },
             report_narrative: report_narrative.to_string(),
+            report_signed_formatted: "20 May 2026".to_string(),
         };
 
         let actual = mh_guide.relevant_variants(false);
@@ -1193,6 +1201,7 @@ mod tests {
                 notable_biomarkers: vec![],
             },
             report_narrative: report_narrative.to_string(),
+            report_signed_formatted: "20 May 2026".to_string(),
         };
 
         let actual = mh_guide.relevant_variants(required);
@@ -1271,6 +1280,7 @@ mod tests {
                 notable_biomarkers: vec![],
             },
             report_narrative: report_narrative.to_string(),
+            report_signed_formatted: "20 May 2026".to_string(),
         };
 
         let actual = mh_guide.relevant_variants(false);
@@ -1343,6 +1353,7 @@ mod tests {
             ],
             biomarkers,
             report_narrative: String::new(),
+            report_signed_formatted: "20 May 2026".to_string(),
         };
 
         let actual = mh_guide.relevant_variants(false);
@@ -1405,7 +1416,8 @@ mod tests {
                         }
                     ]
                 },
-                report_narrative: String::new()
+                report_narrative: String::new(),
+                report_signed_formatted: "20 May 2026".to_string(),
             }
         );
     }
@@ -1516,6 +1528,7 @@ mod tests {
                 notable_biomarkers: vec![],
             },
             report_narrative: INPUT.to_string(),
+            report_signed_formatted: "20 May 2026".to_string(),
         };
 
         let actual = mh_guide.relevant_variants(false);
@@ -1557,6 +1570,7 @@ mod tests {
                 notable_biomarkers: vec![],
             },
             report_narrative: INPUT.to_string(),
+            report_signed_formatted: "20 May 2026".to_string(),
         };
 
         let actual = mh_guide.relevant_variants(false);
