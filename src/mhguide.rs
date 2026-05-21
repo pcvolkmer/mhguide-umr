@@ -397,7 +397,7 @@ impl MhGuide {
 
     #[allow(clippy::expect_used)]
     fn report_narrative_copy_variants(&self) -> Vec<(String, f32)> {
-        let regex = Regex::new(r"(?<gene>[A-Z0-9_\\-]+)\s*.*GCN\s*[:=]\s*(?<gcn>\d+\.\d+)")
+        let regex = Regex::new(r"(?<gene>[A-Z0-9_\\-]+)\s*.*GCN\s*[:=]\s*(?<gcn>\d+(\.\d+)?)")
             .expect("Invalid regex");
 
         self.report_narrative
@@ -1211,6 +1211,7 @@ mod tests {
 
     #[rstest]
     #[case("KMT2C Copy number LOSS GCN = 0.00", 2)]
+    #[case("KMT2C, Copy number LOSS, GCN=0", 2)]
     #[case("KMT2C, GCN = 0.00", 2)]
     #[case("KMT2C, chr9, GCN: 0.00", 2)]
     fn test_add_cnv_report_narrative(
