@@ -1448,6 +1448,18 @@ mod tests {
 
     #[test]
     #[allow(clippy::unwrap_used)]
+    fn test_extract_hrd_from_report_narrative() {
+        static MHGUIDE: &str =
+            include_str!("../testfiles/biomarkers-mhguide-report-narrative.json");
+
+        let value = serde_json::from_str::<MhGuide>(MHGUIDE)
+            .unwrap()
+            .hrd_score();
+        assert_eq!(value, Some(12.34));
+    }
+
+    #[test]
+    #[allow(clippy::unwrap_used)]
     fn test_extract_msi_from_biomarkers() {
         static MHGUIDE: &str = include_str!("../testfiles/biomarkers-mhguide.json");
 
