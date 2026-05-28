@@ -320,6 +320,18 @@ impl MhGuide {
     }
 
     fn biomarker_score_value(&self, variant_type: &ResultType) -> Option<f32> {
+        // Fallbacks from REPORT_NARRATIVE
+        if variant_type == &ResultType::HRD {
+            let hrd_regex =
+                Regex::new(r"HRD[\s\-][Ss]core:\s(?<value>\d+(\.\d+)?)").expect("Invalid regex");
+            let hrd_captures = hrd_regex.captures(&self.report_narrative);
+            if let Some(hrd_captures) = hrd_captures
+                && let Some(value) = hrd_captures.name("value")
+            {
+                return f32::from_str(value.as_str()).ok();
+            }
+        }
+
         for notable_biomarker in &self.biomarkers.notable_biomarkers {
             for biomarker in &notable_biomarker.biomarkers {
                 let Some(display_variant_type) = &biomarker.display_variant_type else {
@@ -1599,5 +1611,44 @@ mod tests {
         let actual = serde_json::from_str::<MhGuide>(&content).unwrap().variants[0]
             .pathogenic_classification();
         assert_eq!(actual, pathogenic_classification);
+    }
+
+    #[test]
+    fn test_hrd_score_from_report_narrative() {
+        let mh_guide = MhGuide {
+            general: General {
+                order_date: "2026-02-11".to_string(),
+                ref_genome_version: RefGenomeVersion::Hg19,
+                patient_identifier: PatientIdentifier {
+                    h_number: "H10000-26".to_string(),
+                    pid: "PID0123456".to_string(),
+                },
+            },
+            variants: vec![Variant {
+                id: 12345678,
+                gene_symbol: Some("ELAVL2".to_string()),
+                protein_modification: Some("p.K1234fs".to_string()),
+                protein_variant_type: Some(CopyNumberVariant),
+                display_variant_type: Some(CopyNumberVariant),
+                chromosome: Some("chr9".to_string()),
+                chromosome_modification: None,
+                transcript_hgvs_modified_object: None,
+                total_reads_in_tumor: Some(123),
+                variant_allele_frequency_in_tumor: None,
+                db_snp: None,
+                copy_number: Some(12.20),
+                classification_name: None,
+                oncogenic_classification_name: Some("Unclassified".to_string()),
+            }],
+            biomarkers: Biomarkers {
+                notable_biomarkers: vec![],
+            },
+            report_narrative: "HRD Score: 12.34".to_string(),
+            report_signed_formatted: "20 May 2026".to_string(),
+        };
+
+        let actual = mh_guide.biomarker_score_value(&HRD);
+
+        assert_eq!(actual, Some(12.34));
     }
 }
