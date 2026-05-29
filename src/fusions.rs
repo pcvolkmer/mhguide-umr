@@ -1,6 +1,6 @@
+use regex::Regex;
 use std::fmt::Display;
 use std::str::FromStr;
-use regex::Regex;
 
 #[derive(Debug, PartialEq)]
 pub enum Fusion {
@@ -80,11 +80,11 @@ impl FromStr for Fusion {
                     _ => return Err(()),
                 };
                 let exon_id_3 = match captures.name("exon_3") {
-                    Some(value) => format!("Exon{}", value.as_str()),
+                    Some(value) => value.as_str().to_string(),
                     _ => return Err(()),
                 };
                 let exon_id_5 = match captures.name("exon_5") {
-                    Some(value) => format!("Exon{}", value.as_str()),
+                    Some(value) => value.as_str().to_string(),
                     _ => return Err(()),
                 };
                 let strand_3 = match captures.name("strand_3") {
@@ -124,11 +124,11 @@ impl FromStr for Fusion {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-    use rstest::rstest;
     use crate::fusions::Fusion;
     use crate::fusions::Fusion::RnaFusion;
     use crate::mhguide::MhGuide;
+    use rstest::rstest;
+    use std::str::FromStr;
 
     #[test]
     #[allow(clippy::unwrap_used)]
@@ -148,8 +148,8 @@ mod tests {
                 transcript_id_5: "NM_014371.4".to_string(),
                 transcript_position_3: 15383944,
                 transcript_position_5: 15507961,
-                exon_id_3: "Exon2".to_string(),
-                exon_id_5: "Exon12".to_string(),
+                exon_id_3: "2".to_string(),
+                exon_id_5: "12".to_string(),
                 strand_3: String::new(),
                 strand_5: String::new(),
                 number_reported_reads: 1158,
@@ -167,8 +167,8 @@ mod tests {
                 transcript_id_5: "NM_012345.4".to_string(),
                 transcript_position_3: 13456789,
                 transcript_position_5: 12345678,
-                exon_id_3: "Exon2".to_string(),
-                exon_id_5: "Exon1".to_string(),
+                exon_id_3: "2".to_string(),
+                exon_id_5: "1".to_string(),
                 strand_3: "-".to_string(),
                 strand_5: "-".to_string(),
                 number_reported_reads: 1234,
@@ -183,8 +183,8 @@ mod tests {
                 transcript_id_5: "NM_012345.4".to_string(),
                 transcript_position_3: 13456789,
                 transcript_position_5: 12345678,
-                exon_id_3: "Exon2".to_string(),
-                exon_id_5: "Exon1".to_string(),
+                exon_id_3: "2".to_string(),
+                exon_id_5: "1".to_string(),
                 strand_3: "+".to_string(),
                 strand_5: "-".to_string(),
                 number_reported_reads: 1234,
@@ -199,8 +199,8 @@ mod tests {
                 transcript_id_5: "NM_012345.4".to_string(),
                 transcript_position_3: 13456789,
                 transcript_position_5: 12345678,
-                exon_id_3: "Exon2".to_string(),
-                exon_id_5: "Exon1".to_string(),
+                exon_id_3: "2".to_string(),
+                exon_id_5: "1".to_string(),
                 strand_3: "-".to_string(),
                 strand_5: "+".to_string(),
                 number_reported_reads: 1234,
@@ -215,8 +215,8 @@ mod tests {
                 transcript_id_5: "NM_012345.4".to_string(),
                 transcript_position_3: 13456789,
                 transcript_position_5: 12345678,
-                exon_id_3: "Exon2".to_string(),
-                exon_id_5: "Exon1".to_string(),
+                exon_id_3: "2".to_string(),
+                exon_id_5: "1".to_string(),
                 strand_3: String::new(),
                 strand_5: String::new(),
                 number_reported_reads: 1234,
@@ -231,8 +231,8 @@ mod tests {
                 transcript_id_5: "NM_012345.4".to_string(),
                 transcript_position_3: 13456789,
                 transcript_position_5: 12345678,
-                exon_id_3: "Exon2".to_string(),
-                exon_id_5: "Exon1".to_string(),
+                exon_id_3: "2".to_string(),
+                exon_id_5: "1".to_string(),
                 strand_3: String::new(),
                 strand_5: String::new(),
                 number_reported_reads: 1234,
@@ -264,8 +264,8 @@ mod tests {
                         transcript_id_5: "NM_012345.4".to_string(),
                         transcript_position_3: 13456789,
                         transcript_position_5: 12345678,
-                        exon_id_3: "Exon2".to_string(),
-                        exon_id_5: "Exon1".to_string(),
+                        exon_id_3: "2".to_string(),
+                        exon_id_5: "1".to_string(),
                         strand_3: "-".to_string(),
                         strand_5: "-".to_string(),
                         number_reported_reads: 1234,
