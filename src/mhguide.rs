@@ -15,7 +15,7 @@ pub struct MhGuide {
     #[serde(rename = "BIOMARKERS")]
     pub biomarkers: Biomarkers,
     #[serde(rename = "REPORT_NARRATIVE")]
-    pub report_narrative: String,
+    pub report_narrative: Option<String>,
     #[serde(rename = "REPORT_SIGNED_FORMATTED")]
     pub report_signed_formatted: String,
 }
@@ -313,18 +313,23 @@ impl MhGuide {
     /// }
     /// ```
     pub fn fusions(&self) -> Vec<Fusion> {
-        self.report_narrative
-            .split('\n')
-            .filter_map(|line| Fusion::from_str(line).ok())
-            .collect::<Vec<_>>()
+        if let Some(ref report_narrative) = self.report_narrative {
+            return report_narrative
+                .split('\n')
+                .filter_map(|line| Fusion::from_str(line).ok())
+                .collect::<Vec<_>>();
+        }
+        vec![]
     }
 
     fn biomarker_score_value(&self, variant_type: &ResultType) -> Option<f32> {
         // Fallbacks from REPORT_NARRATIVE
-        if variant_type == &ResultType::HRD {
+        if variant_type == &ResultType::HRD
+            && let Some(ref report_narrative) = self.report_narrative
+        {
             let hrd_regex =
                 Regex::new(r"HRD[\s\-][Ss]core:\s(?<value>\d+(\.\d+)?)").expect("Invalid regex");
-            let hrd_captures = hrd_regex.captures(&self.report_narrative);
+            let hrd_captures = hrd_regex.captures(report_narrative);
             if let Some(hrd_captures) = hrd_captures
                 && let Some(value) = hrd_captures.name("value")
             {
@@ -350,30 +355,39 @@ impl MhGuide {
     }
 
     fn report_narrative_simple_variants(&self) -> Vec<(String, String)> {
-        let mut result = Self::find_report_narrative_simple_variants(&self.report_narrative);
-        let removable = self.removable_report_narrative_variants();
+        if let Some(ref report_narrative) = self.report_narrative {
+            let mut result = Self::find_report_narrative_simple_variants(report_narrative);
+            let removable = self.removable_report_narrative_variants();
 
-        result.retain(|(gene, modification)| {
-            !removable
-                .iter()
-                .any(|(g, m)| g == gene && m == modification)
-        });
+            result.retain(|(gene, modification)| {
+                !removable
+                    .iter()
+                    .any(|(g, m)| g == gene && m == modification)
+            });
 
-        result
+            return result;
+        }
+
+        vec![]
     }
 
     #[allow(clippy::expect_used)]
     fn removable_report_narrative_variants(&self) -> Vec<(String, String)> {
-        self.report_narrative
-            .split('\n')
-            // Only one variant per line
-            .filter(|&s| Self::find_report_narrative_simple_variants(s).len() == 1)
-            // Exclusion string(s)
-            .filter(|&s| {
-                (s.contains("möglich") || s.contains("wahrscheinlich")) && s.contains("Artefakt")
-            })
-            .flat_map(Self::find_report_narrative_simple_variants)
-            .collect()
+        if let Some(ref report_narrative) = self.report_narrative {
+            return report_narrative
+                .split('\n')
+                // Only one variant per line
+                .filter(|&s| Self::find_report_narrative_simple_variants(s).len() == 1)
+                // Exclusion string(s)
+                .filter(|&s| {
+                    (s.contains("möglich") || s.contains("wahrscheinlich"))
+                        && s.contains("Artefakt")
+                })
+                .flat_map(Self::find_report_narrative_simple_variants)
+                .collect();
+        }
+
+        vec![]
     }
 
     #[allow(clippy::expect_used)]
@@ -412,24 +426,28 @@ impl MhGuide {
         let regex = Regex::new(r"(?<gene>[A-Z0-9_\\-]+)\s*.*GCN\s*[:=]\s*(?<gcn>\d+(\.\d+)?)")
             .expect("Invalid regex");
 
-        self.report_narrative
-            .split('\n')
-            .filter_map(|line| {
-                let captures = regex.captures(line)?;
-                let gene = captures.name("gene");
-                let gcn = captures.name("gcn");
-                if gene.is_none() || gcn.is_none() {
-                    return None;
-                }
-                let gene = gene.expect("Missing gene").as_str().to_owned();
-                let gcn = gcn
-                    .expect("Missing GNC")
-                    .as_str()
-                    .parse::<f32>()
-                    .unwrap_or_default();
-                Some((gene, gcn))
-            })
-            .collect::<Vec<_>>()
+        if let Some(ref report_narrative) = self.report_narrative {
+            return report_narrative
+                .split('\n')
+                .filter_map(|line| {
+                    let captures = regex.captures(line)?;
+                    let gene = captures.name("gene");
+                    let gcn = captures.name("gcn");
+                    if gene.is_none() || gcn.is_none() {
+                        return None;
+                    }
+                    let gene = gene.expect("Missing gene").as_str().to_owned();
+                    let gcn = gcn
+                        .expect("Missing GNC")
+                        .as_str()
+                        .parse::<f32>()
+                        .unwrap_or_default();
+                    Some((gene, gcn))
+                })
+                .collect::<Vec<_>>();
+        }
+
+        vec![]
     }
 }
 
@@ -677,7 +695,59 @@ mod tests {
                         }]
                     }]
                 },
-                report_narrative: String::new(),
+                report_narrative: Some(String::new()),
+                report_signed_formatted: "20 May 2026".to_string(),
+            }
+        );
+    }
+
+    #[test]
+    #[allow(clippy::unwrap_used)]
+    fn test_sv_deserialization_without_report_narrative() {
+        static SV_MHGUIDE: &str = include_str!("../testfiles/sv-mhguide-noreportnarrative.json");
+
+        let mhguide = serde_json::from_str::<MhGuide>(SV_MHGUIDE).unwrap();
+        assert_eq!(
+            mhguide,
+            MhGuide {
+                general: General {
+                    order_date: "2026-02-11".to_string(),
+                    ref_genome_version: RefGenomeVersion::Hg19,
+                    patient_identifier: PatientIdentifier {
+                        h_number: "H10000-26".to_string(),
+                        pid: "0123456".to_string()
+                    }
+                },
+                variants: vec![Variant {
+                    id: 12345678,
+                    gene_symbol: Some("BRAF".to_string()),
+                    protein_modification: Some("p.A123V".to_string()),
+                    protein_variant_type: Some(SimpleVariant("SNV".to_string())),
+                    display_variant_type: Some(SimpleVariant("SNV".to_string())),
+                    chromosome: Some("chr1".to_string()),
+                    chromosome_modification: Some("g.12345678G>A".to_string()),
+                    transcript_hgvs_modified_object: Some("c.123C>T".to_string()),
+                    total_reads_in_tumor: Some(567),
+                    variant_allele_frequency_in_tumor: Some(42.42),
+                    db_snp: Some("rs202602111".to_string()),
+                    copy_number: None,
+                    classification_name: Some("Likely benign".to_string()),
+                    oncogenic_classification_name: None
+                }],
+                biomarkers: Biomarkers {
+                    notable_biomarkers: vec![NotableBiomarker {
+                        biomarkers: vec![Biomarker {
+                            id: 12345678,
+                            display_modified_object: Some("TMB-L".to_string()),
+                            display_variant_type: Some(TMB),
+                            variant_effect: None,
+                            tmb_variant_count_per_megabase: Some("0.1900".to_string()),
+                            copy_number: None,
+                            score: None,
+                        }]
+                    }]
+                },
+                report_narrative: None,
                 report_signed_formatted: "20 May 2026".to_string(),
             }
         );
@@ -729,7 +799,7 @@ mod tests {
                         }]
                     }]
                 },
-                report_narrative: String::new(),
+                report_narrative: Some(String::new()),
                 report_signed_formatted: "20 May 2026".to_string(),
             }
         );
@@ -781,7 +851,7 @@ mod tests {
                         }]
                     }]
                 },
-                report_narrative: String::new(),
+                report_narrative: Some(String::new()),
                 report_signed_formatted: "20 May 2026".to_string(),
             }
         );
@@ -964,7 +1034,7 @@ mod tests {
             biomarkers: Biomarkers {
                 notable_biomarkers: vec![],
             },
-            report_narrative: report_narrative.to_string(),
+            report_narrative: Some(report_narrative.to_string()),
             report_signed_formatted: "20 May 2026".to_string(),
         };
 
@@ -1047,7 +1117,7 @@ mod tests {
             biomarkers: Biomarkers {
                 notable_biomarkers: vec![],
             },
-            report_narrative: report_narrative.to_string(),
+            report_narrative: Some(report_narrative.to_string()),
             report_signed_formatted: "20 May 2026".to_string(),
         };
 
@@ -1111,7 +1181,7 @@ mod tests {
             biomarkers: Biomarkers {
                 notable_biomarkers: vec![],
             },
-            report_narrative: report_narrative.to_string(),
+            report_narrative: Some(report_narrative.to_string()),
             report_signed_formatted: "20 May 2026".to_string(),
         };
 
@@ -1212,7 +1282,7 @@ mod tests {
             biomarkers: Biomarkers {
                 notable_biomarkers: vec![],
             },
-            report_narrative: report_narrative.to_string(),
+            report_narrative: Some(report_narrative.to_string()),
             report_signed_formatted: "20 May 2026".to_string(),
         };
 
@@ -1292,7 +1362,7 @@ mod tests {
             biomarkers: Biomarkers {
                 notable_biomarkers: vec![],
             },
-            report_narrative: report_narrative.to_string(),
+            report_narrative: Some(report_narrative.to_string()),
             report_signed_formatted: "20 May 2026".to_string(),
         };
 
@@ -1365,7 +1435,7 @@ mod tests {
                 },
             ],
             biomarkers,
-            report_narrative: String::new(),
+            report_narrative: Some(String::new()),
             report_signed_formatted: "20 May 2026".to_string(),
         };
 
@@ -1429,7 +1499,7 @@ mod tests {
                         }
                     ]
                 },
-                report_narrative: String::new(),
+                report_narrative: Some(String::new()),
                 report_signed_formatted: "20 May 2026".to_string(),
             }
         );
@@ -1552,7 +1622,7 @@ mod tests {
             biomarkers: Biomarkers {
                 notable_biomarkers: vec![],
             },
-            report_narrative: INPUT.to_string(),
+            report_narrative: Some(INPUT.to_string()),
             report_signed_formatted: "20 May 2026".to_string(),
         };
 
@@ -1594,7 +1664,7 @@ mod tests {
             biomarkers: Biomarkers {
                 notable_biomarkers: vec![],
             },
-            report_narrative: INPUT.to_string(),
+            report_narrative: Some(INPUT.to_string()),
             report_signed_formatted: "20 May 2026".to_string(),
         };
 
@@ -1655,7 +1725,7 @@ mod tests {
             biomarkers: Biomarkers {
                 notable_biomarkers: vec![],
             },
-            report_narrative: "HRD Score: 12.34".to_string(),
+            report_narrative: Some("HRD Score: 12.34".to_string()),
             report_signed_formatted: "20 May 2026".to_string(),
         };
 
