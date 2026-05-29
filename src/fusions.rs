@@ -45,7 +45,7 @@ impl FromStr for Fusion {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let rna_regex = Regex::new(r"(?<partner_5>[A-Z0-9_\\-]+)\(ex (?<exon_5>\d+)\)::(?<partner_3>[A-Z0-9_\\-]+)\(ex (?<exon_3>\d+)\)[,;]\s[Tt]ranscript\sID:\s(?<transcript_id_5>NM_\d+\.\d+)/(?<transcript_id_3>NM_\d+\.\d+)[,;]\s([Ss]trand:\s(?<strand_5>[+-]?)/(?<strand_3>[+-]?)[,;]\s)?[Bb]reakpoint:\schr\d+:(?<transcript_position_5>\d+)/chr\d+:(?<transcript_position_3>\d+)[,;]\s[Ss]upporting\sread\spairs:\s(?<number_reported_reads>\d+)").map_err(|_| ())?;
+        let rna_regex = Regex::new(r"(?<partner_5>[A-Z0-9_\\-]+)\(ex\s?(?<exon_5>\d+)\)::(?<partner_3>[A-Z0-9_\\-]+)\(ex\s?(?<exon_3>\d+)\)[,;]\s[Tt]ranscript\sID:\s(?<transcript_id_5>NM_\d+\.\d+)/(?<transcript_id_3>NM_\d+\.\d+)[,;]\s([Ss]trand:\s(?<strand_5>[+-]?)/(?<strand_3>[+-]?)[,;]\s)?[Bb]reakpoint:\schr\d+:(?<transcript_position_5>\d+)[/,]chr\d+:(?<transcript_position_3>\d+)[,;]\s[Ss]upporting\sread\spairs:\s(?<number_reported_reads>\d+)").map_err(|_| ())?;
 
         match rna_regex.captures(s) {
             Some(captures) => {
@@ -235,6 +235,22 @@ mod tests {
                 exon_id_5: "1".to_string(),
                 strand_3: String::new(),
                 strand_5: String::new(),
+                number_reported_reads: 1234,
+            }
+    )]
+    #[case(
+        "AKAP8L(ex12)::BRD4(ex1); Transcript ID: NM_012345.4/NM_012299.2; Strand: -/+; Breakpoint: chr19:15507960,chr19:15383940; Supporting read pairs: 1234",
+        RnaFusion {
+                partner_3: "BRD4".to_string(),
+                partner_5: "AKAP8L".to_string(),
+                transcript_id_3: "NM_012299.2".to_string(),
+                transcript_id_5: "NM_012345.4".to_string(),
+                transcript_position_3: 15383940,
+                transcript_position_5: 15507960,
+                exon_id_3: "1".to_string(),
+                exon_id_5: "12".to_string(),
+                strand_3: "+".to_string(),
+                strand_5: "-".to_string(),
                 number_reported_reads: 1234,
             }
     )]
