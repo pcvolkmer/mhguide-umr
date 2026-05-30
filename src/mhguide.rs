@@ -322,18 +322,76 @@ impl MhGuide {
         vec![]
     }
 
+    /// Extracts and filters unparsable lines from a report narrative.
+    ///
+    /// This function processes the `report_narrative` field of the struct.
+    /// If the `report_narrative` is `None` or contains only whitespace, this function
+    /// returns `None`. Otherwise, it splits the `report_narrative` into lines, processes
+    /// each line, and filters out lines that meet specific parsing criteria. The remaining
+    /// lines are returned as a `Vec<String>`.
+    ///
+    /// Lines indicate artifacts are shown as unparsable lines because they do not contain
+    /// usable information about variants or biomarkers.
+    ///
+    /// # Returns
+    /// - `None`: If `report_narrative` is `None` or contains only whitespace.
+    /// - `Some(Vec<String>)`: A vector of strings containing lines from `report_narrative`
+    ///   that do not match any of the given parsing criteria.
+    ///
+    /// # Examples
+    /// ```rust
+    /// let mh_guide = MhGuide {
+    ///     general: General {
+    ///         order_date: "2026-02-11".to_string(),
+    ///         ref_genome_version: RefGenomeVersion::Hg19,
+    ///         patient_identifier: PatientIdentifier {
+    ///             h_number: "H10000-26".to_string(),
+    ///             pid: "PID0123456".to_string(),
+    ///         },
+    ///         variants: vec![],
+    ///         biomarkers: Biomarkers {
+    ///             notable_biomarkers: vec![],
+    ///         },
+    ///     report_narrative: "Sonstiger Text, der nicht geparst werden soll.\nKMT2C, GCN = 0.00\n".to_string(),
+    ///     report_signed_formatted: "".to_string(),
+    /// };
+    /// let result = mh_guide.unparsable_report_narrative_lines();
+    /// ```
+    pub fn unparsable_report_narrative_lines(&self) -> Option<Vec<String>> {
+        let Some(report_narrative) = &self.report_narrative else {
+            return None;
+        };
+
+        if report_narrative.trim().is_empty() {
+            return None;
+        }
+
+        Some(
+            report_narrative
+                .split('\n')
+                .map(String::from)
+                .filter(|s| {
+                    !s.is_empty()
+                        && Self::find_report_narrative_simple_variants(s).is_empty()
+                        && Self::find_report_narrative_copy_variants(s).is_empty()
+                        && Self::find_report_narrative_biomarkers(s).is_empty()
+                        && Fusion::from_str(s).is_err()
+                })
+                .collect::<Vec<_>>(),
+        )
+    }
+
     fn biomarker_score_value(&self, variant_type: &ResultType) -> Option<f32> {
         // Fallbacks from REPORT_NARRATIVE
         if variant_type == &ResultType::HRD
             && let Some(ref report_narrative) = self.report_narrative
         {
-            let hrd_regex =
-                Regex::new(r"HRD[\s\-][Ss]core:\s(?<value>\d+(\.\d+)?)").expect("Invalid regex");
-            let hrd_captures = hrd_regex.captures(report_narrative);
-            if let Some(hrd_captures) = hrd_captures
-                && let Some(value) = hrd_captures.name("value")
+            let from_report_narrative = Self::find_report_narrative_biomarkers(report_narrative);
+            if let Some(score) = from_report_narrative
+                .into_iter()
+                .find(|(t, _)| t == variant_type)
             {
-                return f32::from_str(value.as_str()).ok();
+                return Some(score.1);
             }
         }
 
@@ -352,6 +410,24 @@ impl MhGuide {
             }
         }
         None
+    }
+
+    fn find_report_narrative_biomarkers(s: &str) -> Vec<(ResultType, f32)> {
+        let mut result = vec![];
+
+        let hrd_regex =
+            Regex::new(r"HRD[\s\-][Ss]core:\s(?<value>\d+(\.\d+)?)").expect("Invalid regex");
+        let hrd_captures = hrd_regex.captures(s);
+        if let Some(hrd_captures) = hrd_captures
+            && let Some(value) = hrd_captures.name("value")
+        {
+            result.push((
+                ResultType::HRD,
+                f32::from_str(value.as_str()).unwrap_or_default(),
+            ));
+        }
+
+        result
     }
 
     fn report_narrative_simple_variants(&self) -> Vec<(String, String)> {
@@ -423,31 +499,33 @@ impl MhGuide {
 
     #[allow(clippy::expect_used)]
     fn report_narrative_copy_variants(&self) -> Vec<(String, f32)> {
+        if let Some(ref report_narrative) = self.report_narrative {
+            return Self::find_report_narrative_copy_variants(report_narrative);
+        }
+        vec![]
+    }
+
+    fn find_report_narrative_copy_variants(s: &str) -> Vec<(String, f32)> {
         let regex = Regex::new(r"(?<gene>[A-Z0-9_\\-]+)\s*.*GCN\s*[:=]\s*(?<gcn>\d+(\.\d+)?)")
             .expect("Invalid regex");
 
-        if let Some(ref report_narrative) = self.report_narrative {
-            return report_narrative
-                .split('\n')
-                .filter_map(|line| {
-                    let captures = regex.captures(line)?;
-                    let gene = captures.name("gene");
-                    let gcn = captures.name("gcn");
-                    if gene.is_none() || gcn.is_none() {
-                        return None;
-                    }
-                    let gene = gene.expect("Missing gene").as_str().to_owned();
-                    let gcn = gcn
-                        .expect("Missing GNC")
-                        .as_str()
-                        .parse::<f32>()
-                        .unwrap_or_default();
-                    Some((gene, gcn))
-                })
-                .collect::<Vec<_>>();
-        }
-
-        vec![]
+        s.split('\n')
+            .filter_map(|line| {
+                let captures = regex.captures(line)?;
+                let gene = captures.name("gene");
+                let gcn = captures.name("gcn");
+                if gene.is_none() || gcn.is_none() {
+                    return None;
+                }
+                let gene = gene.expect("Missing gene").as_str().to_owned();
+                let gcn = gcn
+                    .expect("Missing GNC")
+                    .as_str()
+                    .parse::<f32>()
+                    .unwrap_or_default();
+                Some((gene, gcn))
+            })
+            .collect::<Vec<_>>()
     }
 }
 
@@ -1732,5 +1810,40 @@ mod tests {
         let actual = mh_guide.biomarker_score_value(&HRD);
 
         assert_eq!(actual, Some(12.34));
+    }
+
+    #[rstest]
+    #[case(None, None)]
+    #[case(Some(""), None)]
+    #[case(
+        Some("KMT2C, GCN = 0.00\nABCD1(ex 1)::ABCD2(ex 2); Transcript ID: NM_012345.4/NM_012456.2; Strand: -/-; Breakpoint: chr19:12345678/chr19:13456789; Supporting read pairs: 1234"),
+        Some(vec![])
+    )]
+    #[case(
+        Some("Sonstiger Text, der nicht geparst werden soll.\nKMT2C, GCN = 0.00\nHRD Score: 12.34. [Der HRD-Score wurde mit der DRAGEN Pipeline (Illumina) ermittelt]"),
+        Some(vec!["Sonstiger Text, der nicht geparst werden soll.".to_string()])
+    )]
+    fn test_should_return_unparsed_report_narrative_lines(
+        #[case] report_narrative: Option<&str>,
+        #[case] expected_lines: Option<Vec<String>>,
+    ) {
+        let mh_guide = MhGuide {
+            general: General {
+                order_date: "2026-02-11".to_string(),
+                ref_genome_version: RefGenomeVersion::Hg19,
+                patient_identifier: PatientIdentifier {
+                    h_number: "H10000-26".to_string(),
+                    pid: "PID0123456".to_string(),
+                },
+            },
+            variants: vec![],
+            biomarkers: Biomarkers {
+                notable_biomarkers: vec![],
+            },
+            report_narrative: report_narrative.map(String::from),
+            report_signed_formatted: "".to_string(),
+        };
+
+        assert_eq!(mh_guide.unparsable_report_narrative_lines(), expected_lines);
     }
 }
