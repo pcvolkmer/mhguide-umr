@@ -330,8 +330,9 @@ impl MhGuide {
     /// each line, and filters out lines that meet specific parsing criteria. The remaining
     /// lines are returned as a `Vec<String>`.
     ///
-    /// Lines indicate artifacts are shown as unparsable lines because they do not contain
-    /// usable information about variants or biomarkers.
+    /// Lines indicating artifacts are shown as unparsable lines if they do not follow the syntax
+    /// for simple variants and therefore do not contain usable information about variants
+    /// or biomarkers.
     ///
     /// # Returns
     /// - `None`: If `report_narrative` is `None` or contains only whitespace.
